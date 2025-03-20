@@ -1,26 +1,32 @@
-name: flutter_unity_widget_example
-description: Demonstrates how to use the flutter_unity_widget plugin.
+name: flutter_unity_test
+description: "A new Flutter project."
+
+publish_to: 'none'
 
 
-publish_to: "none"
+version: 1.0.0+1
 
 environment:
-  sdk: ">=2.12.0 <4.0.0"
+  sdk: ^3.7.2
 
 dependencies:
-  cupertino_icons: ^1.0.0
+  cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
-  flutter_unity_widget:
+  flutter_unity_widget: 
     path: ../
   pointer_interceptor: ^0.9.3+2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+
   flutter_lints: ^5.0.0
 
 
 flutter:
 
+
   uses-material-design: true
+

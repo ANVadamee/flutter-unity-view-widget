@@ -40,9 +40,7 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu List'),
-      ),
+      appBar: AppBar(title: const Text('Menu List')),
       body: Center(
         child: ListView.builder(
           itemCount: menus.length,
@@ -51,9 +49,7 @@ class _MenuScreenState extends State<MenuScreen> {
               title: Text(menus[i].title),
               subtitle: Text(menus[i].description),
               onTap: () {
-                Navigator.of(context).pushNamed(
-                  menus[i].route,
-                );
+                Navigator.of(context).pushNamed(menus[i].route);
               },
             );
           },
