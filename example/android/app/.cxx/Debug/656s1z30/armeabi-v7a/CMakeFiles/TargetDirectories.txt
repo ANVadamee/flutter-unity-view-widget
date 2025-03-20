@@ -1,0 +1,2 @@
+C:/Users/23943/Desktop/FlutterWorkSpace/FlutterUnityViewWidget/example/android/app/.cxx/Debug/656s1z30/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/23943/Desktop/FlutterWorkSpace/FlutterUnityViewWidget/example/android/app/.cxx/Debug/656s1z30/armeabi-v7a/CMakeFiles/rebuild_cache.dir
