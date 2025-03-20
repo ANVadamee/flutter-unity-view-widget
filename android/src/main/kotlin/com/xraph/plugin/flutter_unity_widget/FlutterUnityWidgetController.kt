@@ -98,7 +98,7 @@ class FlutterUnityWidgetController(
         detachView()
         destroyUnityViewIfNecessary()
 
-        val lifecycle = lifecycleProvider.getLifecycle()
+        val lifecycle = lifecycleProvider.getLifecycle2()
         lifecycle.removeObserver(this)
 
         disposed = true
@@ -262,7 +262,7 @@ class FlutterUnityWidgetController(
 
     //#region Member Methods
     fun bootstrap() {
-        this.lifecycleProvider.getLifecycle().addObserver(this)
+        this.lifecycleProvider.getLifecycle2().addObserver(this)
     }
 
     private fun openNativeUnity() {

@@ -183,97 +183,34 @@ android {
 2. Depending on your gradle version, you might need to make sure the `minSdkVersion` set in `android\app\build.gradle` matches the version that is set in Unity.  
 Check the **Minimum API Level** setting in the Unity player settings, and match that version.
 
-3. (optional) Fixing Unity plugins.  
-The Unity widget will function without this step, but some Unity plugins like ArFoundation will throw `mUnityPlayer` errors on newer Unity versions.  
-
-    This is needed for Unity 2020.3.46+, 2021.3.19 - 2021.3.20 and 2022.2.4 - 2022.3.18.  
-This requires a flutter_unity_widget version that is newer than 2022.2.1.  
-
-
-- 3.1. Open the `android/app/build.gradle` file and add the following:
-
-```diff
-     dependencies {
-         // build.gradle
-+        implementation project(':flutter_unity_widget')
-         // build.gradle.kts (Flutter 3.29+)
-+        implementation(project(":flutter_unity_widget"))
-     }
-```
-- 3.2. Edit your android MainActivity file.  
-The default location for Flutter is `android/app/src/main/kotlin/<app identifier>/MainActivity.kt`.
-
-  If you use the default flutter activity, change it to inherit `FlutterUnityActivity`:
-```diff
-// MainActivity.kt
-
-+ import com.xraph.plugin.flutter_unity_widget.FlutterUnityActivity;
-
-+ class MainActivity: FlutterUnityActivity() {
-- class MainActivity: FlutterActivity() {
-```
-
-- 3.2. (alternative) If you use a custom or modified Activity, implement the `IFlutterUnityActivity` interface instead.
-
-```kotlin
-// MainActivity.kt
-
-// only do this if your activity does not inherit FlutterActivity
-
-import com.xraph.plugin.flutter_unity_widget.IFlutterUnityActivity;
-
-class MainActivity: CustomActivity(), IFlutterUnityActivity {
-    // unity will try to read this mUnityPlayer property
-    @JvmField 
-    var mUnityPlayer: java.lang.Object? = null;
-
-    // implement this function so the plugin can set mUnityPlayer
-    override fun setUnityPlayer(unityPlayer: java.lang.Object?) {
-        mUnityPlayer = unityPlayer;
-    }
-}
-```
-
-
-4. The Unity export script automatically sets the rest up for you. You are done with the Android setup.  
+3. The Unity export script automatically sets the rest up for you. You are done with the Android setup.  
 But if you want to manually set up the changes made by the export, continue.
   
 <details> 
 <summary> Optional manual Android setup </summary> 
 
-5. Open the *android/settings.gradle* file and change the following:
+4. Open the *android/settings.gradle* file and change the following:
 
 ```diff
-// build.gradle
 +    include ":unityLibrary"
-+    project(":unityLibrary").projectDir = file("./unityLibrary")
-
-// build.gradle.kts (Flutter 3.29+)
-+    include(":unityLibrary")
 +    project(":unityLibrary").projectDir = file("./unityLibrary")
 ```
 
-6. Open the *android/app/build.gradle* file and change the following:
+5. Open the *android/app/build.gradle* file and change the following:
 
 ```diff
      dependencies {
-          // app/build.gradle
 +        implementation project(':unityLibrary')
-         // app/build.gradle.kts (Flutter 3.29+)
-+        implementation(project(":unityLibrary"))
      }
 ```
 
-7. open the *android/build.gradle* file and change the following:
+6. open the *android/build.gradle* file and change the following:
 
 ```diff
 allprojects {
     repositories {
 +       flatDir {
-            // build.gradle
 +           dirs "${project(':unityLibrary').projectDir}/libs"
-            // build.gradle.kts (Flutter 3.29+)
-+           dirs(file("${project(":unityLibrary").projectDir}/libs"))
 +       }
         google()
         mavenCentral()
@@ -281,7 +218,7 @@ allprojects {
 }
 ```
 
-8. If you need to build a release package, open the *android/app/build.gradle* file and change the following:
+7. If you need to build a release package, open the *android/app/build.gradle* file and change the following:
 
 ```diff
      buildTypes {
@@ -302,13 +239,13 @@ allprojects {
 
 > The code above use the `debug` signConfig for all buildTypes, which can be changed as you well if you need specify signConfig.
 
-9. If you use `minifyEnabled true` in your *android/app/build.gradle* file, open the *android/unityLibrary/proguard-unity.txt* and change the following:
+8. If you use `minifyEnabled true` in your *android/app/build.gradle* file, open the *android/unityLibrary/proguard-unity.txt* and change the following:
 
 ```diff
 +    -keep class com.xraph.plugin.** {*;}
 ```
 
-10. If you want Unity in it's own activity as an alternative, open the *android/app/src/main/AndroidManifest.xml* and change the following:
+9. If you want Unity in it's own activity as an alternative, open the *android/app/src/main/AndroidManifest.xml* and change the following:
 
 ```diff
 +    <activity
@@ -378,12 +315,7 @@ allprojects {
   
   <img src="https://github.com/juicycleff/flutter-unity-view-widget/blob/master/files/libraries.png" width="400" />
   
-  5. Unity plugins that make use of native code (Vuforia, openCV, etc.) might need to be added to Runner like UnityFramework.  
-  Check the contents of the `/ios/UnityLibrary/Frameworks/` directory. Any `<name>.framework` located in (subdirectories of) this directory is a framework that you can add to Runner.
-
-  6. Make sure pods are installed after your Unity export, either using `flutter run` or by running `pod install` in the ios folder.
-
-  7. If you use Xcode 14 or newer, and Unity older than 2021.3.17f1 or 2022.2.2f1, your app might crash when running from Xcode.  
+  5. If you use Xcode 14 or newer, and Unity older than 2021.3.17f1 or 2022.2.2f1, your app might crash when running from Xcode.  
     Disable the `Thread Performance Checker` feature in Xcode to fix this.  
     - In Xcode go to `Product > Scheme > Edit Scheme...`  
     - Now With `Run` selected on the left, got to the `Diagnostics` tab and uncheck the checkbox for `Thread Performance Checker`. 
@@ -396,43 +328,30 @@ allprojects {
 
  The following setup for AR is done after making an export from Unity.
 
-<b>Warning: Flutter 3.22 has introduced a crash when using AR on Android < 13 [#957](https://github.com/juicycleff/flutter-unity-view-widget/issues/957)</b>
 
+<b>Warning: The `XR Plugin Management` package version `4.3.1 - 4.3.3` has bug that breaks Android exports. </b>
+
+- The bug accidentally deletes your AndroidManifest.xml file after each build, resulting in a broken export.  
+Switch to version `4.2.2` or `4.4` to avoid this.  
 
 <details>
  <summary>:information_source: <b>AR Foundation Android</b></summary>
 
-  1. Check the version of the `XR Plugin Management` in the Unity package manager. Versions `4.3.1 - 4.3.3` contain a bug that breaks Android exports.  
-  Make sure to use a version <=`4.2.2` or >=`4.4`.  
-  You might have to manually change the version in `<unity project>/Packages/manifest.json` for `"com.unity.xr.management"`.
-
-
-  2. You can check the `android/unityLibrary/libs` folder to see if AR was properly exported. It should contain files similar to `UnityARCore.aar`, `ARPresto.aar`, `arcore_client.aar` and `unityandroidpermissions.aar`.  
-
-     If your setup and export was done correctly, your project should automatically load these files.  
-     If it doesn't, check if your `android/build.gradle` file contains the `flatDir` section added in the android setup step 7.
- 
-  3. If your `XR Plugin Management` plugin is version 4.4 or higher, Unity also exports the xrmanifest.androidlib folder.
-     Make sure to include it by adding the following line to `android/settings.gradle`
-     ```
-     // settings.gradle
-     include ":unityLibrary:xrmanifest.androidlib"
-
-     // settings.gradle.kts (Flutter 3.29+)
-     include(":unityLibrary:xrmanifest.androidlib")
-     ```
-  4. With some Unity versions AR might crash at runtine with an error like:  
-   `java.lang.NoSuchFieldError: no "Ljava/lang/Object;" field "mUnityPlayer" in class`.  
-   See the Android setup step 3 on how to edit your MainActivity to fix this.  
+  7. Open the *lib/__architecture__/* folder and check if there are both *libUnityARCore.so* and *libarpresto_api.so* files.
+  There seems to be a bug where a Unity export does not include all lib files. If they are missing, use Unity to build a standalone .apk
+  of your AR project, unzip the resulting apk, and copy over the missing .lib files to the `unityLibrary` module. 
+  
+  8. Repeat steps 4 and 5 from the Android <b>Platform specific setup</b> (editing build.gradle and settings.gradle), replacing `unityLibrary` with `arcore_client`, `unityandroidpermissions` and `UnityARCore`.
+  
+  9. When using `UnityWidget` in Flutter, set `fullscreen: false` to disable fullscreen.
 
 -----
 </details>
 
 <details>
  <summary>:information_source: <b>AR Foundation iOS</b></summary>
+7. Open the *ios/Runner/Info.plist* and change the following:
 
-1. Open the *ios/Runner/Info.plist* and add a camera usage description.  
-For example: 
 ```diff
      <dict>
 +        <key>NSCameraUsageDescription</key>
@@ -445,45 +364,28 @@ For example:
 <details>
  <summary>:information_source: <b>Vuforia Android</b></summary>
 
-1. Your export should contain a Vuforia library in the `android/unityLibrary/libs/` folder. Currently named `VuforiaEngine.aar`.
+Thanks to [@PiotrxKolasinski](https://github.com/PiotrxKolasinski) for writing down the exact steps:
 
-     If your setup and export was done correctly, your project should automatically load this file.  
-     If it doesn't, check if your `android/build.gradle` file contains the `flatDir` section added in the android setup step 7.
+7. Open the *android/unityLibrary/build.gradle* file and change the following: 
 
-In case this gets outdated or broken, check the [Vuforia documentation](https://developer.vuforia.com/library/unity-extension/using-vuforia-engine-unity-library-uaal#android-specific-steps)
-
------
-</details>
-
-<details>
- <summary>:information_source: <b>Vuforia iOS</b></summary>
-
-These steps are based on these [Vuforia docs](https://developer.vuforia.com/library/unity-extension/using-vuforia-engine-unity-library-uaal#ios-specific-steps) and [this comment](https://github.com/juicycleff/flutter-unity-view-widget/issues/314#issuecomment-785302253)
-
-1. Open the *ios/Runner/Info.plist* and add a camera usage description.  
-For example: 
 ```diff
-     <dict>
-+        <key>NSCameraUsageDescription</key>
-+        <string>$(PRODUCT_NAME) uses Cameras</string>
-     </dict>
+-    implementation(name: 'VuforiaWrapper', ext: 'aar')
++    implementation project(':VuforiaWrapper')
 ```
-2. In Xcode, 
-Select `Runner` > `General` tab.  
-In `Frameworks, Libraries, and Embedded content` add the Vuforia frameworks. This is where you added *UnityFramework.framework* in step 4 of the iOS setup.
 
-    You should be able to find them in
-`/ios/UnityLibrary/Frameworks/com.ptc.vuforia.engine/Vuforia/Plugins/iOS/`.  
-Currently these are 
-    - `Vuforia.framework`  
-    - `UnityDriver.framework`
+8. Using Android Studio, go to **File > Open** and select the *android/* folder. A
+    new project will open.
+    
+> Don't worry if the error message "Project with path ':VuforiaWrapper' could not be 
+> found in project ':unityLibrary'" appears. The next step will fix it.
 
-3. To support Vuforia target databases, move the `Unity-iPhone/Vuforia` folder from Unity-iPhone to Runner. Then set `Target Membership` of this folder to Runner.
-
-4. Make sure pods are installed after your Unity export, either using `flutter run` or by running `pod install` in the ios folder.
-
+9. In this new project window, go to **File > New > New Module > Import .JAR/.AAR package**
+    and select the *android/unityLibrary/libs/VuforiaWrapper.aar* file. A new folder
+    named *VuforiaWrapper* will be created inside *android/*. You can now close this
+    new project window.
+  
 -----
-</details>
+  </details>
 
 ## Emulators
 We recommend using a physical iOS or Android device, as emulator support is limited.  
